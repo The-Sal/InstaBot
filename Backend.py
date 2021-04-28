@@ -7,6 +7,7 @@ followers
 """
 import time
 import json
+import random
 from threading import Thread
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -235,6 +236,10 @@ class Insta_Bot:
             dvr.get(post)
             Tries = 1000
             while Tries > 0:
+
+                sleep_time = random.randint(0, 10) # Keep it sus free yk
+                time.sleep(sleep_time)
+
                 try:
                     dvr.execute_script("window.scrollTo(28, 527)")
                     LwL(dvr=dvr, x_path=Struct["like"], type=0)
