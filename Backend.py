@@ -7,6 +7,7 @@ followers
 """
 import time
 import json
+from threading import Thread
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
@@ -58,6 +59,16 @@ def LwL(dvr, x_path, type):
         raise Exception("Too many attempts")
 
     return text
+
+
+def check_for_ban(dvr):
+    import os
+    while True:
+        time.sleep(0.5)
+        if str(dvr.current_url).__contains__("challenge"):
+            print("INFO: ACCOUNT LOCKED")
+            print("EXITING")
+            os._exit(0)
 
 class Insta_Bot:
     def __init__(self, username, password):
@@ -160,6 +171,8 @@ class Insta_Bot:
         print("INFO: Following {}".format(self.following))
 
         self.InstaDriver = dvr
+
+        Thread(target=check_for_ban(dvr=dvr)).start()
 
         #dvr.quit()
 
