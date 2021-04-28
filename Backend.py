@@ -28,6 +28,12 @@ Extraction = {
 }
 
 
+Urls = {
+    "main" : "https://instagram.com/",
+    "activity" : "https://www.instagram.com/accounts/activity/",
+    "search_tag" : "https://www.instagram.com/explore/tags/" # <- insert tag
+}
+
 def LwL(dvr, x_path, type):
     text = "None"
     while True:
@@ -62,14 +68,13 @@ class Insta_Bot:
         profile.set_preference("general.useragent.override", user_agent)
 
         options = Options()
-        options.headless = True
+        options.headless = False
         # Download FireFox & Download GECKODriver and Insert It's path here V
         driver = webdriver.Firefox(options=options, executable_path='/users/sal/downloads/geckodriver', firefox_profile=profile)
         dvr = driver
         dvr.set_window_size(360, 640)
         dvr.get("https://www.instagram.com/")
 
-        self.InstaDriver = dvr
 
         dvr.delete_all_cookies()
         try:
@@ -148,8 +153,42 @@ class Insta_Bot:
         print("INFO: Followers {}".format(self.followers).replace("followers", ""))
         print("INFO: Following {}".format(self.following))
 
+        self.InstaDriver = dvr
+
+        #dvr.quit()
+
+    def do_like_with_tags(self, tags:list):
+
+        try:
+            dvr = self.InstaDriver
+        except:
+            raise Exception("Driver not initialised")
 
 
-        dvr.quit()
+        #
+        #/html/body/div[1]/section/main/article/div[1]/div/div/div[1]/div[2]/a/div/div[2]
+        #/html/body/div[1]/section/main/article/div[1]/div/div/div[1]/div[3]/a/div/div[2]
+
+
+        for tag in tags:
+            Url = Urls["search_tag"] + tag
+            dvr.get(Url)
+            ActualPosts = []
+
+            allLinks = dvr.find_elements_by_tag_name("a")
+
+            for link in allLinks:
+                l = link.get_attribute("href")
+                if str(l).__contains__("/p/"):
+                    ActualPosts.append(l)
+
+
+            print(ActualPosts)
+
+
+
+
+
+
 
 

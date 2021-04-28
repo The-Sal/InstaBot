@@ -27,3 +27,4 @@ from Backend import Insta_Bot
 import os
 prog = Insta_Bot(username=os.getenv("USERNAME"), password=os.getenv("PASSWORD"))
 prog.LaunchWithLogin()
+prog.do_like_with_tags(["Cars"])
