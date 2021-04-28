@@ -22,12 +22,15 @@ Struct = {
     "savelogin": "/html/body/div[1]/section/main/div/div/section/div/button",
     "dm" : "/html/body/div[1]/section/nav[1]/div/div/header/div/div[2]/a/svg",
     "profile" : "/html/body/div[1]/section/nav[2]/div/div/div[2]/div/div/div[5]/a/div",
-    "like" : "/html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button"
+    "like" : "/html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button",
+    "follow_click" : "/html/body/div[1]/section/main/div/header/section/div[2]/div/div/div/div/span/span[1]/button"
 }
 
 Extraction = {
     "flwrs" : "/html/body/div[1]/section/main/div/header/section/ul/li[2]/a",
-    "flwing" : "/html/body/div[1]/section/main/div/header/section/ul/li[3]/a/span"
+    "flwing" : "/html/body/div[1]/section/main/div/header/section/ul/li[3]/a/span",
+    "Tag_profile_pic": "/html/body/div[1]/section/main/div/div/article/div[3]/div[1]/div/div[1]/div/a",
+    "rando_from_tag_followers": "/html/body/div[1]/section/main/div/ul/li[2]/a/span"
 }
 
 
@@ -52,7 +55,10 @@ def LwL(dvr, x_path, type):
 
             break
         except Exception as e:
-            print(e)
+            if str(e).__contains__("element"):
+                pass
+            else:
+                print(e)
             pass
 
     if not OverrideCount > 0:
@@ -112,16 +118,15 @@ class Insta_Bot:
             time.sleep(3)
 
             if str(dvr.current_url).__contains__("login"): # if cookies failed url will contain login
-                print("Cookies Failed")
+                print("INFO: Cookies Failed")
                 import sys
                 sys.exit(1)
 
             dvr.get("https://instagram.com")
 
         except Exception as e:
-            print(e)
             dvr.refresh()
-            print("Using PW ERROR WITH COOKIES")
+            print("INFO: Using Pw ERROR WITH COOKIES")
             while True:
                 try:
                     dvr.find_element_by_xpath(Struct["LoginButton1"]).click()
@@ -136,7 +141,7 @@ class Insta_Bot:
                     dvr.find_element_by_xpath(Struct["loginfinal"]).click()
                     break
                 except Exception as e:
-                    print(e)
+                    print("INFO: Exception Occured ->",e)
                     pass
 
             time.sleep(4)
@@ -184,7 +189,7 @@ class Insta_Bot:
 
         #dvr.quit()
 
-    def do_like_with_tags(self, tags:list, max_likes):
+    def do_like_with_tags(self, tags:list, max_likes, follow_user=None, max_followers=None):
 
         try:
             dvr = self.InstaDriver
@@ -192,15 +197,13 @@ class Insta_Bot:
             raise Exception("Driver not initialised")
 
 
-        #
-        #/html/body/div[1]/section/main/article/div[1]/div/div/div[1]/div[2]/a/div/div[2]
-        #/html/body/div[1]/section/main/article/div[1]/div/div/div[1]/div[3]/a/div/div[2]
-
 
         for tag in tags:
             Url = Urls["search_tag"] + tag
             dvr.get(Url)
             ActualPosts = []
+
+            print("INFO: Searching for tag {}".format(tag))
 
             allLinks = dvr.find_elements_by_tag_name("a")
 
@@ -211,6 +214,7 @@ class Insta_Bot:
 
 
             Liked = []
+            Followed = []
             for post in ActualPosts:
                 if max_likes <= 0:
                     break
@@ -220,14 +224,39 @@ class Insta_Bot:
                 dvr.get(post)
 
                 Tries = 10000
+                NoReturn = False
                 while Tries > 0:
-                    try:
-                        snor()
-                        dvr.execute_script("window.scrollTo(28, 527)")
-                        LwL(dvr=dvr, x_path=Struct["like"], type=0)
+                    if NoReturn:
                         break
-                    except:
-                        pass
+                    snor()
+                    dvr.execute_script("window.scrollTo(28, 527)")
+                    snor()
+                    LwL(dvr=dvr, x_path=Struct["like"], type=0)
+
+                    if follow_user:
+                        snor()
+                        print("INFO: Checking user eligibility")
+                        LwL(dvr=dvr, x_path=Extraction["Tag_profile_pic"], type=0)
+                        Followers = LwL(dvr=dvr, x_path=Extraction["rando_from_tag_followers"], type=1)
+                        print("INFO: Raw Data {}".format(Followers))
+
+                        Followers = Followers.replace(",", "")
+
+                        if str(Followers).lower().__contains__("k"):
+                            Followers = Followers.lower().replace("k", "")
+                            Followers = Followers.split(".")
+                            Followers = Followers[0]
+                            nom_followers = int(Followers)
+                            nom_followers = nom_followers * 1000
+                        else:
+                            nom_followers = int(Followers)
+
+                        print("INFO: Target Has {}".format(nom_followers))
+                        if nom_followers <= max_followers:
+                            Followed.append(dvr.current_url)
+                            print("INFO: Target Acquired")
+                            break
+                    break
                 else:
                     print("INFO: Max Tries EXCEEDED")
                     continue
@@ -235,8 +264,7 @@ class Insta_Bot:
                 Liked.append(post)
 
             self.liked_posts = Liked
-
-
+            self.followed_people = Followed
 
 
     def unlike_all_posts(self):
@@ -262,8 +290,10 @@ class Insta_Bot:
     def save_all_liked(self):
         SVD = open('progress_liked.json', 'w+')
         SavedArray = self.liked_posts
+        Followed = self.followed_people
         cfg = {
-            "Liked": SavedArray
+            "Liked": SavedArray,
+            "Followed" : Followed
         }
         json.dump(cfg, SVD, indent=4)
         SVD.truncate()
@@ -289,12 +319,13 @@ class Insta_Bot:
             if (screen_height) * i > scroll_height:
                 break
 
-    def safe_mode(self, type:int, Tags=None, AmountOfLikes=None):
+    def safe_mode(self, type:int, Tags=None, AmountOfLikes=None, follow=None):
         print("INFO: Using SAFE MODE")
         if type == 0:
             for tag in Tags:
-                self.do_like_with_tags([tag], AmountOfLikes)
-                self.scroll_feed()
+                self.do_like_with_tags([tag], AmountOfLikes, follow_user=True, max_followers=200)
+                for _ in range(random.randint(0,3)):
+                    self.scroll_feed()
                 continue
 
         if type == 1:
