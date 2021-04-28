@@ -287,7 +287,7 @@ class Insta_Bot:
 
         self.liked_posts.clear()
 
-    def save_all_liked(self):
+    def save_progress(self):
         SVD = open('progress_liked.json', 'w+')
         SavedArray = self.liked_posts
         Followed = self.followed_people
