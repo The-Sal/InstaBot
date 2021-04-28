@@ -7,6 +7,9 @@ example:
 export USERNAME=the._.sal
 export PASSWORD=SomePWIDFK
 *********************************
+
+Packages Required:
+selenium
 '''
 from Backend import follow
 import os
