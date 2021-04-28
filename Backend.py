@@ -298,34 +298,38 @@ class Insta_Bot:
         json.dump(cfg, SVD, indent=4)
         SVD.truncate()
 
-    def scroll_feed(self):
+    def scroll_feed(self, times):
         driver = self.InstaDriver
         driver.get(Urls["main"])
-        time.sleep(1)
-        screen_height = driver.execute_script("return window.screen.height;")
-        i = 1
-
-        C = 0
-
-        while True:
-            driver.execute_script("window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
-            i += 1
-            C = C + 1
-            if C >= 10:
-                break
-
+        print("INFO: Scrolling {}".format(times))
+        for _ in range(times):
             time.sleep(1)
-            scroll_height = driver.execute_script("return document.body.scrollHeight;")
-            if (screen_height) * i > scroll_height:
-                break
+            screen_height = driver.execute_script("return window.screen.height;")
+            i = 1
 
-    def safe_mode(self, type:int, Tags=None, AmountOfLikes=None, follow=None):
+            C = 0
+
+            while True:
+                driver.execute_script(
+                    "window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
+                i += 1
+                C = C + 1
+                if C >= 10:
+                    break
+
+                time.sleep(1)
+                scroll_height = driver.execute_script("return document.body.scrollHeight;")
+                if (screen_height) * i > scroll_height:
+                    break
+
+    def safe_mode(self, type:int, Tags=None, AmountOfLikes=None, follow=None, max_followerss=None):
         print("INFO: Using SAFE MODE")
         if type == 0:
             for tag in Tags:
-                self.do_like_with_tags([tag], AmountOfLikes, follow_user=True, max_followers=200)
-                for _ in range(random.randint(0,3)):
-                    self.scroll_feed()
+                self.do_like_with_tags([tag], AmountOfLikes, follow_user=follow, max_followers=max_followerss)
+                rn = random.randint(0,3)
+                self.scroll_feed(rn)
+
                 continue
 
         if type == 1:
