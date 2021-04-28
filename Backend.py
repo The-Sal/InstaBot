@@ -260,3 +260,17 @@ class Insta_Bot:
         }
         json.dump(cfg, SVD, indent=4)
         SVD.truncate()
+
+    def safe_mode(self, type:int, Tags=None, AmountOfLikes=None):
+        print("INFO: Using SAFE MODE")
+
+        if type == 0:
+            number_of_tags = len(Tags)
+            number_of_tags = number_of_tags - 1
+            SplitNO = random.randint(0, number_of_tags)
+
+        if type == 1:
+            pass
+
+
+
