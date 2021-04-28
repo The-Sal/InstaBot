@@ -171,7 +171,7 @@ class Insta_Bot:
 
         self.InstaDriver = dvr
 
-        Thread(target=check_for_ban, args=[dvr]).start()
+        Thread(target=check_for_ban, args=[dvr], daemon=True).start()
 
         self.followers = followers
         self.following = following
