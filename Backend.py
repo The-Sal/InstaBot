@@ -19,7 +19,8 @@ Struct = {
     "loginfinal" : "/html/body/div[1]/section/main/article/div/div/div/form/div[1]/div[6]",
     "savelogin": "/html/body/div[1]/section/main/div/div/section/div/button",
     "dm" : "/html/body/div[1]/section/nav[1]/div/div/header/div/div[2]/a/svg",
-    "profile" : "/html/body/div[1]/section/nav[2]/div/div/div[2]/div/div/div[5]/a/div"
+    "profile" : "/html/body/div[1]/section/nav[2]/div/div/div[2]/div/div/div[5]/a/div",
+    "like" : "/html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button"
 }
 
 Extraction = {
@@ -36,7 +37,8 @@ Urls = {
 
 def LwL(dvr, x_path, type):
     text = "None"
-    while True:
+    OverrideCount = 500
+    while OverrideCount > 0:
         try:
             if type == 0:
                 text = dvr.find_element_by_xpath(x_path).click()
@@ -50,6 +52,10 @@ def LwL(dvr, x_path, type):
         except Exception as e:
             print(e)
             pass
+
+    if not OverrideCount > 0:
+        print("INFO: Too many attempts on {}".format(x_path))
+        raise Exception("Too many attempts")
 
     return text
 
@@ -157,7 +163,7 @@ class Insta_Bot:
 
         #dvr.quit()
 
-    def do_like_with_tags(self, tags:list):
+    def do_like_with_tags(self, tags:list, max_likes):
 
         try:
             dvr = self.InstaDriver
@@ -183,12 +189,56 @@ class Insta_Bot:
                     ActualPosts.append(l)
 
 
-            print(ActualPosts)
+            Liked = []
+            for post in ActualPosts:
+                if max_likes <= 0:
+                    break
+                max_likes = max_likes - 1
+                print(post)
+                dvr.get(post)
+
+                Tries = 10000
+                while Tries > 0:
+                    try:
+                        dvr.execute_script("window.scrollTo(28, 527)")
+                        LwL(dvr=dvr, x_path=Struct["like"], type=0)
+                        break
+                    except:
+                        pass
+                else:
+                    print("INFO: Max Tries EXCEEDED")
+                    continue
+
+                Liked.append(post)
+
+            self.liked_posts = Liked
 
 
 
 
+    def unlike_all_posts(self):
+        dvr = self.InstaDriver
+        for post in self.liked_posts:
+            dvr.get(post)
+            Tries = 1000
+            while Tries > 0:
+                try:
+                    dvr.execute_script("window.scrollTo(28, 527)")
+                    LwL(dvr=dvr, x_path=Struct["like"], type=0)
+                    break
+                except:
+                    pass
+            else:
+                print("INFO: Max Tries EXCEEDED")
+                continue
 
+        self.liked_posts.clear()
 
-
-
+    def save_all_liked(self):
+        SVD = open('progress_liked', 'w+')
+        SavedArray = self.liked_posts
+        cfg = {
+            "cookies": SavedArray
+        }
+        json.dump(cfg, SVD, indent=4)
+        SVD.truncate()

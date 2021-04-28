@@ -25,6 +25,10 @@ except:
 
 from Backend import Insta_Bot
 import os
-prog = Insta_Bot(username=os.getenv("USERNAME"), password=os.getenv("PASSWORD"))
-prog.LaunchWithLogin()
-prog.do_like_with_tags(["Cars"])
+
+if __name__ == '__main__':
+    prog = Insta_Bot(username=os.getenv("USERNAME"), password=os.getenv("PASSWORD"))
+    prog.LaunchWithLogin()
+    prog.do_like_with_tags(["Cars"], max_likes=10)
+    prog.save_all_liked()
+    prog.unlike_all_posts()
