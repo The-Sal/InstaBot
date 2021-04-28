@@ -1,2 +1,5 @@
 # Project exclude paths
 /venv/
+/cookies_yum.json
+/login.json
+/.idea
