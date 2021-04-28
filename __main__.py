@@ -28,5 +28,6 @@ import os
 
 if __name__ == '__main__':
     prog = Insta_Bot(username=os.getenv("USERNAME"), password=os.getenv("PASSWORD"))
-    #prog.LaunchWithLogin()
-    prog.safe_mode(Tags=["Drake", "JuiceWRLD"], type=0)
+    prog.LaunchWithLogin()
+    prog.safe_mode(Tags=["Lamborghini", "JuiceWRLD"], type=0, AmountOfLikes=5)
+    prog.save_all_liked()

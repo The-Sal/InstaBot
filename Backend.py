@@ -71,6 +71,10 @@ def check_for_ban(dvr):
             print("EXITING")
             os._exit(0)
 
+def snor():
+    sleep_time = random.randint(0, 10)  # Keep it sus free yk
+    time.sleep(sleep_time)
+
 class Insta_Bot:
     def __init__(self, username, password):
         self.UserName = username
@@ -109,7 +113,8 @@ class Insta_Bot:
 
             if str(dvr.current_url).__contains__("login"): # if cookies failed url will contain login
                 print("Cookies Failed")
-                raise Exception
+                import sys
+                sys.exit(1)
 
             dvr.get("https://instagram.com")
 
@@ -164,6 +169,10 @@ class Insta_Bot:
 
         dvr.set_window_size(360, 640)
 
+        self.InstaDriver = dvr
+
+        Thread(target=check_for_ban, args=[dvr]).start()
+
         self.followers = followers
         self.following = following
 
@@ -171,9 +180,7 @@ class Insta_Bot:
         print("INFO: Followers {}".format(self.followers).replace("followers", ""))
         print("INFO: Following {}".format(self.following))
 
-        self.InstaDriver = dvr
 
-        Thread(target=check_for_ban(dvr=dvr)).start()
 
         #dvr.quit()
 
@@ -209,11 +216,13 @@ class Insta_Bot:
                     break
                 max_likes = max_likes - 1
                 print(post)
+                snor()
                 dvr.get(post)
 
                 Tries = 10000
                 while Tries > 0:
                     try:
+                        snor()
                         dvr.execute_script("window.scrollTo(28, 527)")
                         LwL(dvr=dvr, x_path=Struct["like"], type=0)
                         break
@@ -236,9 +245,7 @@ class Insta_Bot:
             dvr.get(post)
             Tries = 1000
             while Tries > 0:
-
-                sleep_time = random.randint(0, 10) # Keep it sus free yk
-                time.sleep(sleep_time)
+                snor()
 
                 try:
                     dvr.execute_script("window.scrollTo(28, 527)")
@@ -253,21 +260,42 @@ class Insta_Bot:
         self.liked_posts.clear()
 
     def save_all_liked(self):
-        SVD = open('progress_liked', 'w+')
+        SVD = open('progress_liked.json', 'w+')
         SavedArray = self.liked_posts
         cfg = {
-            "cookies": SavedArray
+            "Liked": SavedArray
         }
         json.dump(cfg, SVD, indent=4)
         SVD.truncate()
 
+    def scroll_feed(self):
+        driver = self.InstaDriver
+        driver.get(Urls["main"])
+        time.sleep(1)
+        screen_height = driver.execute_script("return window.screen.height;")
+        i = 1
+
+        C = 0
+
+        while True:
+            driver.execute_script("window.scrollTo(0, {screen_height}*{i});".format(screen_height=screen_height, i=i))
+            i += 1
+            C = C + 1
+            if C >= 10:
+                break
+
+            time.sleep(1)
+            scroll_height = driver.execute_script("return document.body.scrollHeight;")
+            if (screen_height) * i > scroll_height:
+                break
+
     def safe_mode(self, type:int, Tags=None, AmountOfLikes=None):
         print("INFO: Using SAFE MODE")
-
         if type == 0:
-            number_of_tags = len(Tags)
-            number_of_tags = number_of_tags - 1
-            SplitNO = random.randint(0, number_of_tags)
+            for tag in Tags:
+                self.do_like_with_tags([tag], AmountOfLikes)
+                self.scroll_feed()
+                continue
 
         if type == 1:
             pass
