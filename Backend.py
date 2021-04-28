@@ -24,13 +24,35 @@ Struct = {
 
 Extraction = {
     "flwrs" : "/html/body/div[1]/section/main/div/header/section/ul/li[2]/a",
-    "flwing" : "/html/body/div[1]/section/main/div/header/section/ul/li[3]/a"
+    "flwing" : "/html/body/div[1]/section/main/div/header/section/ul/li[3]/a/span"
 }
+
+
+def LwL(dvr, x_path, type):
+    text = "None"
+    while True:
+        try:
+            if type == 0:
+                text = dvr.find_element_by_xpath(x_path).click()
+                break
+
+            if type == 1:
+                text = dvr.find_element_by_xpath(x_path).text
+                break
+
+            break
+        except Exception as e:
+            print(e)
+            pass
+
+    return text
 
 class Insta_Bot:
     def __init__(self, username, password):
         self.UserName = username
         self.pw = password
+
+
 
     def LaunchWithLogin(self):
 
@@ -40,7 +62,7 @@ class Insta_Bot:
         profile.set_preference("general.useragent.override", user_agent)
 
         options = Options()
-        options.headless = False
+        options.headless = True
         # Download FireFox & Download GECKODriver and Insert It's path here V
         driver = webdriver.Firefox(options=options, executable_path='/users/sal/downloads/geckodriver', firefox_profile=profile)
         dvr = driver
@@ -106,8 +128,28 @@ class Insta_Bot:
             json.dump(cfg, cookie_file, indent=4)
             cookie_file.truncate()
 
-            dvr.close()
-            dvr.stop_client()
             pass
+
+        prfurl = "https://www.instagram.com/" + self.UserName
+
+        dvr.get(url=prfurl)
+
+        dvr.set_window_size(1280, 734)
+
+        followers = LwL(dvr=dvr, x_path=Extraction["flwrs"], type=1)
+        following = LwL(dvr=dvr, x_path=Extraction["flwing"], type=1)
+
+        dvr.set_window_size(360, 640)
+
+        self.followers = followers
+        self.following = following
+
+        print("INFO: Username {}".format(self.UserName))
+        print("INFO: Followers {}".format(self.followers).replace("followers", ""))
+        print("INFO: Following {}".format(self.following))
+
+
+
+        dvr.quit()
 
 
