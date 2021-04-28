@@ -3,3 +3,5 @@
 /cookies_yum.json
 /login.json
 /.idea
+/.env
+*.log

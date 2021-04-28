@@ -2,7 +2,7 @@
 How does it work???
 
 Enter a tag then searches posts based on tag then tages USERS who posted with tag and follows said user
-hoping for a follow4follow chain to occur. To help it work faster only follow people who have less than a threshhold of
+hoping for a follow4follow chain to occur. To help it work faster only Insta_Bot people who have less than a threshhold of
 followers
 """
 import time
@@ -27,7 +27,7 @@ Extraction = {
     "flwing" : "/html/body/div[1]/section/main/div/header/section/ul/li[3]/a"
 }
 
-class follow:
+class Insta_Bot:
     def __init__(self, username, password):
         self.UserName = username
         self.pw = password
@@ -65,6 +65,8 @@ class follow:
             if str(dvr.current_url).__contains__("login"): # if cookies failed url will contain login
                 print("Cookies Failed")
                 raise Exception
+
+            dvr.get("https://instagram.com")
 
         except Exception as e:
             print(e)
