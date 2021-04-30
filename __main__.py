@@ -30,6 +30,6 @@ import os
 if __name__ == '__main__':
     prog = Insta_Bot(username=os.getenv("USERNAME"), password=os.getenv("PASSWORD"))
     prog.LaunchWithLogin()
-    # prog.safe_mode(Tags=["hypercar"], type=0, AmountOfLikes=1)
+    prog.safe_mode(Tags=["Ferrari"], type=0, AmountOfLikes=1)
     # prog.direct_message(recipient="", message="")
-    # prog.save_progress()
+    prog.save_progress()

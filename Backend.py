@@ -110,6 +110,7 @@ class Insta_Bot:
         dvr = driver
         dvr.set_window_size(360, 640)
         dvr.get("https://www.instagram.com/")
+        self.InstaDriver = dvr
 
 
         dvr.delete_all_cookies()
@@ -182,7 +183,7 @@ class Insta_Bot:
 
         dvr.set_window_size(360, 640)
 
-        self.InstaDriver = dvr
+
 
         Thread(target=check_for_ban, args=[dvr], daemon=True).start()
 
