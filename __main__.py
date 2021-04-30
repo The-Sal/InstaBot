@@ -18,7 +18,8 @@ Run in shell ONLY or enter user name and pw manually
 '''
 
 try:
-    from dotenv import load_dotenv # Optional Package to load .env file
+    from dotenv import load_dotenv  # Optional Package to load .env file
+
     load_dotenv()
 except:
     pass
@@ -29,5 +30,6 @@ import os
 if __name__ == '__main__':
     prog = Insta_Bot(username=os.getenv("USERNAME"), password=os.getenv("PASSWORD"))
     prog.LaunchWithLogin()
-    prog.safe_mode(Tags=["hypercar"], type=0, AmountOfLikes=1)
-    prog.save_progress()
+    # prog.safe_mode(Tags=["hypercar"], type=0, AmountOfLikes=1)
+    # prog.direct_message(recipient="", message="")
+    # prog.save_progress()

@@ -2,28 +2,33 @@
 How does it work???
 
 Enter a tag then searches posts based on tag then tages USERS who posted with tag and follows said user
-hoping for a follow4follow chain to occur. To help it work faster only Insta_Bot people who have less than a threshhold of
+hoping for a follow4follow chain to occur. To help it work faster only Insta_Bot people who have less than a threshold of
 followers
 """
-import time
 import json
 import random
+import time
 from threading import Thread
+
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 
-
 # X_Path of insta to locate elements to be clicked
 Struct = {
-    "LoginButton1" : "/html/body/div[1]/section/main/article/div/div/div/div[3]/button[1]",
-    "user_name" : "/html/body/div[1]/section/main/article/div/div/div/form/div[1]/div[3]/div/label/input",
-    "pw" : "/html/body/div[1]/section/main/article/div/div/div/form/div[1]/div[4]/div/label/input",
-    "loginfinal" : "/html/body/div[1]/section/main/article/div/div/div/form/div[1]/div[6]",
+    "LoginButton1": "/html/body/div[1]/section/main/article/div/div/div/div[3]/button[1]",
+    "user_name": "/html/body/div[1]/section/main/article/div/div/div/form/div[1]/div[3]/div/label/input",
+    "pw": "/html/body/div[1]/section/main/article/div/div/div/form/div[1]/div[4]/div/label/input",
+    "loginfinal": "/html/body/div[1]/section/main/article/div/div/div/form/div[1]/div[6]",
     "savelogin": "/html/body/div[1]/section/main/div/div/section/div/button",
-    "dm" : "/html/body/div[1]/section/nav[1]/div/div/header/div/div[2]/a/svg",
-    "profile" : "/html/body/div[1]/section/nav[2]/div/div/div[2]/div/div/div[5]/a/div",
-    "like" : "/html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button",
-    "follow_click" : "/html/body/div[1]/section/main/div/header/section/div[2]/div/div/div/div/span/span[1]/button"
+    "dm": "/html/body/div[1]/section/nav[1]/div/div/header/div/div[2]/a/svg",
+    "profile": "/html/body/div[1]/section/nav[2]/div/div/div[2]/div/div/div[5]/a/div",
+    "like": "/html/body/div[1]/section/main/div/div/article/div[3]/section[1]/span[1]/button",
+    "follow_click": "/html/body/div[1]/section/main/div/header/section/div[2]/div/div/div/div/span/span[1]/button",
+    "dm_input": "/html/body/div[1]/section/div[2]/div/div[1]/div/div[2]/input",
+    "dm_top_click": "/html/body/div[1]/section/div[2]/div/div[2]/div[1]/div",
+    "dm_next": "/html/body/div[1]/section/div[1]/header/div/div[2]",
+    "dm_text_field": "/html/body/div[1]/section/div[2]/div/div/div[2]/div/div/div/textarea",
+    "dm_send_message": "/html/body/div[1]/section/div[2]/div/div/div[2]/div/div/div[2]/button"
 }
 
 Extraction = {
@@ -40,32 +45,8 @@ Urls = {
     "search_tag" : "https://www.instagram.com/explore/tags/" # <- insert tag
 }
 
-def LwL(dvr, x_path, type):
-    text = "None"
-    OverrideCount = 500
-    while OverrideCount > 0:
-        try:
-            if type == 0:
-                text = dvr.find_element_by_xpath(x_path).click()
-                break
 
-            if type == 1:
-                text = dvr.find_element_by_xpath(x_path).text
-                break
 
-            break
-        except Exception as e:
-            if str(e).__contains__("element"):
-                pass
-            else:
-                print(e)
-            pass
-
-    if not OverrideCount > 0:
-        print("INFO: Too many attempts on {}".format(x_path))
-        raise Exception("Too many attempts")
-
-    return text
 
 
 def check_for_ban(dvr):
@@ -86,7 +67,34 @@ class Insta_Bot:
         self.UserName = username
         self.pw = password
 
+    def LwL(self, x_path, type, text_to_send=None):
+        OverrideCount = 500
+        dvr = self.InstaDriver
+        while OverrideCount > 0:
+            try:
+                if type == 0:
+                    text = dvr.find_element_by_xpath(x_path).click()
+                    break
 
+                if type == 1:
+                    text = dvr.find_element_by_xpath(x_path).text
+                    return text
+
+                if type == 2:
+                    dvr.find_element_by_xpath(x_path).send_keys(text_to_send)
+                    break
+
+                break
+            except Exception as e:
+                if str(e).__contains__("element"):
+                    pass
+                else:
+                    print(e)
+                pass
+
+        if not OverrideCount > 0:
+            print("INFO: Too many attempts on {}".format(x_path))
+            raise Exception("Too many attempts")
 
     def LaunchWithLogin(self):
 
@@ -169,8 +177,8 @@ class Insta_Bot:
 
         dvr.set_window_size(1280, 734)
 
-        followers = LwL(dvr=dvr, x_path=Extraction["flwrs"], type=1)
-        following = LwL(dvr=dvr, x_path=Extraction["flwing"], type=1)
+        followers = self.LwL(x_path=Extraction["flwrs"], type=1)
+        following = self.LwL(x_path=Extraction["flwing"], type=1)
 
         dvr.set_window_size(360, 640)
 
@@ -231,13 +239,13 @@ class Insta_Bot:
                     snor()
                     dvr.execute_script("window.scrollTo(28, 527)")
                     snor()
-                    LwL(dvr=dvr, x_path=Struct["like"], type=0)
+                    self.LwL(x_path=Struct["like"], type=0)
 
                     if follow_user:
                         snor()
                         print("INFO: Checking user eligibility")
-                        LwL(dvr=dvr, x_path=Extraction["Tag_profile_pic"], type=0)
-                        Followers = LwL(dvr=dvr, x_path=Extraction["rando_from_tag_followers"], type=1)
+                        self.LwL(x_path=Extraction["Tag_profile_pic"], type=0)
+                        Followers = self.LwL(x_path=Extraction["rando_from_tag_followers"], type=1)
                         print("INFO: Raw Data {}".format(Followers))
 
                         Followers = Followers.replace(",", "")
@@ -277,7 +285,7 @@ class Insta_Bot:
 
                 try:
                     dvr.execute_script("window.scrollTo(28, 527)")
-                    LwL(dvr=dvr, x_path=Struct["like"], type=0)
+                    self.LwL(x_path=Struct["like"], type=0)
                     break
                 except:
                     pass
@@ -327,7 +335,7 @@ class Insta_Bot:
         if type == 0:
             for tag in Tags:
                 self.do_like_with_tags([tag], AmountOfLikes, follow_user=follow, max_followers=max_followerss)
-                rn = random.randint(0,3)
+                rn = random.randint(0, 3)
                 self.scroll_feed(rn)
 
                 continue
@@ -335,5 +343,16 @@ class Insta_Bot:
         if type == 1:
             pass
 
-
-
+    def direct_message(self, message, recipient):
+        dvr = self.InstaDriver
+        dvr.get('https://www.instagram.com/direct/new/')
+        self.LwL(x_path=Struct["dm_input"], type=2, text_to_send=recipient)
+        time.sleep(3)
+        self.LwL(x_path=Struct["dm_top_click"], type=0)
+        time.sleep(2)
+        self.LwL(x_path=Struct["dm_next"], type=0)
+        # time.sleep(1)
+        self.LwL(x_path=Struct["dm_text_field"], type=2, text_to_send=message)
+        # time.sleep(2)
+        print("INFO: Sending message to {}".format(recipient))
+        self.LwL(x_path=Struct["dm_send_message"], type=0)
