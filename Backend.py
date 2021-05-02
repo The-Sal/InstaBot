@@ -1,9 +1,11 @@
 """
-How does it work???
-
-Enter a tag then searches posts based on tag then tages USERS who posted with tag and follows said user
-hoping for a follow4follow chain to occur. To help it work faster only Insta_Bot people who have less than a threshold of
-followers
+Sample Data Set
+'''
+1) 0.86
+2) 1
+3) 2.8
+4) 4.75
+'''
 """
 import json
 import random
@@ -28,7 +30,8 @@ Struct = {
     "dm_top_click": "/html/body/div[1]/section/div[2]/div/div[2]/div[1]/div",
     "dm_next": "/html/body/div[1]/section/div[1]/header/div/div[2]",
     "dm_text_field": "/html/body/div[1]/section/div[2]/div/div/div[2]/div/div/div/textarea",
-    "dm_send_message": "/html/body/div[1]/section/div[2]/div/div/div[2]/div/div/div[2]/button"
+    "dm_send_message": "/html/body/div[1]/section/div[2]/div/div/div[2]/div/div/div[2]/button",
+    "suggestions_follow" : "'html/body/div[1]/section/main/div/div[2]/div/div/div[{}]/div[2]/div[1]/div/a'"
 }
 
 Extraction = {
@@ -42,7 +45,8 @@ Extraction = {
 Urls = {
     "main" : "https://instagram.com/",
     "activity" : "https://www.instagram.com/accounts/activity/",
-    "search_tag" : "https://www.instagram.com/explore/tags/" # <- insert tag
+    "search_tag" : "https://www.instagram.com/explore/tags/", # <- insert tag
+    "discover_friends" : "https://www.instagram.com/explore/people/suggested/"
 }
 
 
@@ -67,7 +71,12 @@ class Insta_Bot:
         self.UserName = username
         self.pw = password
 
-    def LwL(self, x_path, type, text_to_send=None):
+    def LwL(self, x_path, type, text_to_send=None, alt=None):
+        '''
+        0 = click
+        1 = text
+        2 = sendkeys
+        '''
         OverrideCount = 500
         dvr = self.InstaDriver
         while OverrideCount > 0:
@@ -77,8 +86,12 @@ class Insta_Bot:
                     break
 
                 if type == 1:
-                    text = dvr.find_element_by_xpath(x_path).text
-                    return text
+                    try:
+                        text = dvr.find_element_by_xpath(x_path).text
+                        return text
+                    except:
+                        text = dvr.find_element_by_xpath(alt).text
+                        return text
 
                 if type == 2:
                     dvr.find_element_by_xpath(x_path).send_keys(text_to_send)
@@ -96,7 +109,7 @@ class Insta_Bot:
             print("INFO: Too many attempts on {}".format(x_path))
             raise Exception("Too many attempts")
 
-    def LaunchWithLogin(self):
+    def LaunchWithLogin(self, skipcheckup=False, headless=False):
 
         user_agent = "Mozilla/5.0 (iPhone; U; CPU iPhone OS 3_0 like Mac OS X; en-us) AppleWebKit/528.18 (KHTML, like Gecko) Version/4.0 Mobile/7A341 Safari/528.16"
 
@@ -104,7 +117,7 @@ class Insta_Bot:
         profile.set_preference("general.useragent.override", user_agent)
 
         options = Options()
-        options.headless = False
+        options.headless = headless
         # Download FireFox & Download GECKODriver and Insert It's path here V
         driver = webdriver.Firefox(options=options, executable_path='/users/sal/downloads/geckodriver', firefox_profile=profile)
         dvr = driver
@@ -123,13 +136,14 @@ class Insta_Bot:
 
             dvr.refresh()
 
-            dvr.get("https://www.instagram.com/accounts/activity/")
-            time.sleep(3)
+            if skipcheckup:
+                dvr.get("https://www.instagram.com/accounts/activity/")
+                time.sleep(3)
 
-            if str(dvr.current_url).__contains__("login"): # if cookies failed url will contain login
-                print("INFO: Cookies Failed")
-                import sys
-                sys.exit(1)
+                if str(dvr.current_url).__contains__("login"):  # if cookies failed url will contain login
+                    print("INFO: Cookies Failed")
+                    import sys
+                    sys.exit(1)
 
             dvr.get("https://instagram.com")
 
@@ -297,7 +311,7 @@ class Insta_Bot:
         self.liked_posts.clear()
 
     def save_progress(self):
-        SVD = open('progress_liked.json', 'w+')
+        SVD = open('progress_made.json', 'w+')
         SavedArray = self.liked_posts
         Followed = self.followed_people
         cfg = {
@@ -357,3 +371,95 @@ class Insta_Bot:
         # time.sleep(2)
         print("INFO: Sending message to {}".format(recipient))
         self.LwL(x_path=Struct["dm_send_message"], type=0)
+
+
+    def undo_progress(self):
+        dvr = self.InstaDriver
+        prog_file = open('progress_made.json', 'r')
+        JsProgFile = json.load(prog_file)
+        Flwrs = list(JsProgFile["Followed"])
+        Liked = list(JsProgFile["Liked"])
+
+        in_ = random.randint(0,1)
+
+        self.liked_posts = Liked
+        self.unlike_all_posts()
+        # Uncompleted work in progress
+
+
+    def slurp_links(self, keytag=None):
+        Actual = []
+        dvr = self.InstaDriver
+        allLinks = dvr.find_elements_by_tag_name("a")
+
+        for link in allLinks:
+            l = link.get_attribute("href")
+            if not keytag == None:
+                if str(l).__contains__(keytag):
+                    Actual.append(l)
+            else:
+                Actual.append(l)
+
+
+    def chain_follow_suggestions(self, max_follow:int = None):
+        dvr = self.InstaDriver
+
+
+
+        # Look for pattern
+        # /html/body/div[1]/section/main/div/div[2]/div/div/div[1]/div[3]/button | /html/body/div[1]/section/main/div/div[2]/div/div/div[1]/div[2]/div[1]/div/a
+        # /html/body/div[1]/section/main/div/div[2]/div/div/div[2]/div[3]/button | /html/body/div[1]/section/main/div/div[2]/div/div/div[2]/div[2]/div[1]/div/a
+        # /html/body/div[1]/section/main/div/div[2]/div/div/div[1]/div[2]/div[1]/div/a
+
+        max_follow = max_follow + 1
+
+        FollowUsers = []
+        for x in range(max_follow):
+
+            dvr.set_window_size(360, 640)
+            dvr.get(Urls["discover_friends"])
+            User_html_id = x + 1
+
+
+            Temp_html_for_user = f"/html/body/div[1]/section/main/div/div[2]/div/div/div[{User_html_id}]/div[2]/div[1]/div/a"
+            snor()
+            self.LwL(x_path=Temp_html_for_user, type=0)
+            print("INFO: Checking user eligibility")
+
+            dvr.set_window_size(1280, 734)
+
+            followers = self.LwL(x_path="/html/body/div[1]/section/main/div/header/section/ul/li[2]/span",
+                                 alt='/html/body/div[1]/section/main/div/header/section/ul/li[2]/a',
+                                 type=1)
+
+            following = self.LwL(x_path="/html/body/div[1]/section/main/div/header/section/ul/li[3]/span",
+                                 alt='/html/body/div[1]/section/main/div/header/section/ul/li[3]/a',
+                                 type=1)
+
+
+            print("INFO: Raw Data {} / {}".format(followers, following))
+
+            following = str(following).replace('following', '')
+            followers = str(followers).replace('followers', '')
+            following = str(following).replace(',', '')
+            followers = str(followers).replace(',', '')
+
+            # Math Time---
+
+            flwrs_int = float(followers)
+            flwing_int = float(following)
+            ratio = flwrs_int / flwing_int
+
+            print('INFO: Follow Ratio -> {}'.format(ratio))
+
+            r = round(ratio, 1)
+
+            if r <= 1:
+                FollowUsers.append(dvr.current_url)
+
+            continue
+
+        print(FollowUsers)
+
+
+

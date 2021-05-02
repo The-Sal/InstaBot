@@ -29,7 +29,9 @@ import os
 
 if __name__ == '__main__':
     prog = Insta_Bot(username=os.getenv("USERNAME"), password=os.getenv("PASSWORD"))
-    prog.LaunchWithLogin()
-    prog.safe_mode(Tags=["Ferrari"], type=0, AmountOfLikes=1)
-    # prog.direct_message(recipient="", message="")
-    prog.save_progress()
+    prog.LaunchWithLogin(headless=True)
+    prog.chain_follow_suggestions(max_follow=5)
+    # prog.undo_progress()
+    # prog.direct_message(recipient="", message="how's you're day?")
+    # prog.safe_mode(Tags=["uae"], type=0, AmountOfLikes=10, follow=True, max_followerss=300)
+    # prog.save_progress()
